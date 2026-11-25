@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>لعبة ذكاء الأطفال 🧠</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: linear-gradient(160deg, #7c3aed, #2563eb 45%, #0891b2); min-height: 100vh; color: #1f2937; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px; min-height: 100vh; display: flex; flex-direction: column; }
+  header { text-align: center; color: #fff; padding: 10px 0 4px; }
+  header h1 { font-size: 30px; text-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  header p { opacity: .95; margin-top: 4px; font-size: 15px; }
+  .card { background: #fff; border-radius: 24px; padding: 22px; margin-top: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); flex: 1; }
+  .hidden { display: none !important; }
+  .btn { display: block; width: 100%; border: none; border-radius: 16px; padding: 16px; font-size: 19px; font-weight: bold; cursor: pointer; margin-top: 12px; transition: transform .08s; font-family: inherit; }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
+  .btn-blue { background: #2563eb; color: #fff; }
+  .btn-green { background: #16a34a; color: #fff; }
+  .btn-gray { background: #e5e7eb; color: #374151; }
+  .level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .level { border: 3px solid #e5e7eb; border-radius: 20px; padding: 18px 10px; text-align: center; cursor: pointer; background: #f9fafb; }
+  .level:hover { border-color: #f59e0b; }
+  .level .emoji { font-size: 44px; }
+  .level h3 { font-size: 20px; margin-top: 6px; }
+  .level p { font-size: 13px; color: #6b7280; margin-top: 4px; }
+  .level .lock { font-size: 13px; color: #9ca3af; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 15px; }
+  .stars { color: #f59e0b; font-size: 20px; letter-spacing: 2px; }
+  .progress { height: 12px; background: #e5e7eb; border-radius: 99px; overflow: hidden; margin: 14px 0 4px; }
+  .progress > div { height: 100%; background: linear-gradient(90deg, #22c55e, #84cc16); width: 0%; transition: width .3s; }
+  .qnum { color: #6b7280; font-size: 14px; }
+  .question { font-size: 24px; font-weight: bold; line-height: 1.6; margin: 18px 0 6px; text-align: center; }
+  .qemoji { font-size: 52px; text-align: center; }
+  .speak-row { display: flex; gap: 10px; margin-top: 10px; }
+  .speak-row .btn { margin-top: 0; font-size: 16px; padding: 12px; }
+  .opt { display: block; width: 100%; border: 3px solid #e5e7eb; background: #f9fafb; border-radius: 16px; padding: 16px; font-size: 21px; font-weight: bold; cursor: pointer; margin-top: 12px; font-family: inherit; }
+  .opt:hover { border-color: #93c5fd; }
+  .opt.correct { background: #dcfce7; border-color: #16a34a; color: #166534; }
+  .opt.wrong { background: #fee2e2; border-color: #dc2626; color: #991b1b; }
+  .opt:disabled { cursor: default; opacity: .9; }
+  .explain { background: #fffbeb; border: 2px dashed #f59e0b; border-radius: 16px; padding: 16px; margin-top: 16px; font-size: 18px; line-height: 1.7; }
+  .explain h3 { color: #b45309; margin-bottom: 6px; }
+  .praise { background: #dcfce7; border: 2px solid #16a34a; border-radius: 16px; padding: 14px; margin-top: 16px; font-size: 19px; font-weight: bold; color: #166534; text-align: center; }
+  .big-emoji { font-size: 72px; text-align: center; }
+  .result-score { font-size: 52px; font-weight: bold; text-align: center; color: #7c3aed; }
+  .center { text-align: center; }
+  .voice-toggle { position: fixed; bottom: 16px; left: 16px; z-index: 10; background: #fff; border: none; border-radius: 99px; padding: 12px 18px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 14px rgba(0,0,0,.3); cursor: pointer; font-family: inherit; }
+  footer { text-align: center; color: rgba(255,255,255,.85); font-size: 13px; padding: 12px 0 60px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🧠 لعبة ذكاء الأطفال</h1>
+    <p>العب وتعلّم.. وكل سؤال يعلّمك حاجة جديدة!</p>
+  </header>
+
+  <!-- شاشة المستويات -->
+  <div class="card" id="homeScreen">
+    <h2 class="center">اختر المستوى يا بطل 🏆</h2>
+    <p class="center" style="color:#6b7280;margin-top:6px">كل مستوى فيه 10 أسئلة. لو جاوبت غلط هقولك الصح وأشرحهولك بالصوت!</p>
+    <div class="level-grid" id="levelGrid"></div>
+    <button class="btn btn-gray" onclick="toggleVoice()" id="voiceBtnHome">🔊 الصوت: شغّال</button>
+    <p class="center" style="color:#6b7280;margin-top:14px;font-size:14px">أفضل نتيجة لك: <span id="bestScore">—</span></p>
+  </div>
+
+  <!-- شاشة اللعب -->
+  <div class="card hidden" id="gameScreen">
+    <div class="topbar">
+      <span id="levelLabel"></span>
+      <span class="stars" id="starsLabel">⭐ 0</span>
+      <span id="scoreLabel">النقاط: 0</span>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+    <p class="qnum" id="qCounter"></p>
+    <div class="qemoji" id="qEmoji"></div>
+    <div class="question" id="qText"></div>
+    <div class="speak-row">
+      <button class="btn btn-blue" onclick="speakQuestion()">🔊 اسمع السؤال</button>
+      <button class="btn btn-gray" onclick="quitToHome()">🏠 المستويات</button>
+    </div>
+    <div id="optionsBox"></div>
+    <div id="feedbackBox"></div>
+    <button class="btn btn-primary hidden" id="nextBtn" onclick="nextQuestion()">السؤال اللي بعده ➡️</button>
+  </div>
+
+  <!-- شاشة النتيجة -->
+  <div class="card hidden center" id="resultScreen">
+    <div class="big-emoji" id="resultEmoji">🎉</div>
+    <h2 id="resultTitle">برافو يا بطل!</h2>
+    <div class="result-score" id="resultScore"></div>
+    <p id="resultStars" style="font-size:32px"></p>
+    <p id="resultMsg" style="font-size:18px;line-height:1.7;margin-top:8px"></p>
+    <button class="btn btn-primary" onclick="replayLevel()">🔄 العب نفس المستوى تاني</button>
+    <button class="btn btn-blue" onclick="quitToHome()">🏆 اختر مستوى تاني</button>
+  </div>
+
+  <footer>صُنعت بحب للأطفال • الصوت يعمل من متصفح أو تطبيق أندرويد يدعم النطق العربي</footer>
+</div>
+<button class="voice-toggle" onclick="toggleVoice()" id="voiceBtnFloat">🔊 الصوت: شغّال</button>
+
+<script>
+const LEVELS = [
+  { id: 0, name: "سهل 🌱", age: "4 - 6 سنوات", desc: "عدّ وألوان وأشكال", icon: "🌱" },
+  { id: 1, name: "متوسط 🌟", age: "7 - 9 سنوات", desc: "حساب وأنماط ومنطق", icon: "🌟" },
+  { id: 2, name: "صعب 🚀", age: "10 - 12 سنة", desc: "تحديات حساب ومنطق", icon: "🚀" },
+  { id: 3, name: "خبير 👑", age: "تحدي الأذكياء", desc: "أسئلة تحتاج تفكير عميق", icon: "👑" },
+];
+
+const QUESTIONS = {
+0: [
+ { q: "كم عدد التفاحات؟ 🍎🍎🍎", opts: ["2", "3", "4", "5"], a: 1, ex: "الصح هو 3، لأننا عدّينا التفاحات واحدة واحدة: واحدة، اتنين، تلاتة.", emoji: "🍎" },
+ { q: "ما ناتج 2 + 3 = ؟", opts: ["4", "5", "6", "7"], a: 1, ex: "الصح هو 5، لأن 2 زائد 3 يساوي 5. جرّب تعدّ على صوابعك!", emoji: "➕" },
+ { q: "ما اللون الناتج من خلط الأحمر مع الأبيض؟", opts: ["أخضر", "وردي", "أزرق", "أسود"], a: 1, ex: "الصح هو الوردي، لأن الأحمر مع الأبيض بيعمل لون وردي جميل.", emoji: "🎨" },
+ { q: "أي رقم يأتي بعد 7؟", opts: ["6", "8", "9", "5"], a: 1, ex: "الصح هو 8، لأن الأرقام بتمشي بالترتيب: 6، 7، 8.", emoji: "🔢" },
+ { q: "كم عدد أرجل القطة؟ 🐱", opts: ["2", "3", "4", "6"], a: 2, ex: "الصح هو 4، القطة عندها أربع رجلين، اتنين قدام واتنين ورا.", emoji: "🐱" },
+ { q: "ما ناتج 5 - 2 = ؟", opts: ["2", "3", "4", "1"], a: 1, ex: "الصح هو 3، لأن لو معاك 5 حلوى وأكلت 2، هيتبقى 3.", emoji: "🍬" },
+ { q: "أي شكل له 3 أضلاع؟", opts: ["المربع", "الدائرة", "المثلث", "المستطيل"], a: 2, ex: "الصح هو المثلث، لأنه مصنوع من 3 أضلاع و3 زوايا.", emoji: "🔺" },
+ { q: "كم عدد أيام الأسبوع؟", opts: ["5", "6", "7", "8"], a: 2, ex: "الصح هو 7 أيام: السبت والأحد والاثنين والثلاثاء والأربعاء والخميس والجمعة.", emoji: "📅" },
+ { q: "أي حيوان يقول مواء؟", opts: ["الكلب", "القطة", "البقرة", "الأسد"], a: 1, ex: "الصح هو القطة، هي اللي بتقول مواء، أما الكلب فيقول هو هو.", emoji: "🐈" },
+ { q: "ما ناتج 4 + 4 = ؟", opts: ["6", "7", "8", "9"], a: 2, ex: "الصح هو 8، لأن 4 زائد 4 يساوي 8.", emoji: "✏️" },
+],
+1: [
+ { q: "ما ناتج 6 × 3 = ؟", opts: ["15", "18", "21", "12"], a: 1, ex: "الصح هو 18، لأن 6 في 3 يعني 6 + 6 + 6 ويساوي 18.", emoji: "✖️" },
+ { q: "أكمل النمط: 2، 4، 6، 8، ...؟", opts: ["9", "10", "12", "11"], a: 1, ex: "الصح هو 10، لأن النمط بيزيد 2 في كل مرة: 2، 4، 6، 8، 10.", emoji: "🔢" },
+ { q: "أي عدد هو الأكبر؟", opts: ["45", "54", "44", "49"], a: 1, ex: "الصح هو 54، لأن رقم العشرات فيه 5 وهو أكبر من 4.", emoji: "📏" },
+ { q: "كم عدد أضلاع المربع؟", opts: ["3", "4", "5", "6"], a: 1, ex: "الصح هو 4، المربع له 4 أضلاع متساوية و4 زوايا.", emoji: "⬛" },
+ { q: "ما ناتج 20 ÷ 4 = ؟", opts: ["4", "5", "6", "8"], a: 1, ex: "الصح هو 5، لأن 4 في 5 يساوي 20، فـ 20 على 4 يساوي 5.", emoji: "➗" },
+ { q: "أي كلمة مختلفة عن الباقي؟", opts: ["تفاحة", "موزة", "برتقالة", "سيارة"], a: 3, ex: "الصح هو السيارة، لأن التفاحة والموزة والبرتقالة كلها فواكه، أما السيارة فوسيلة مواصلات.", emoji: "🍎" },
+ { q: "مع أحمد 10 جنيهات، اشترى قلمًا بـ 4 جنيهات. كم بقي معه؟", opts: ["4", "5", "6", "7"], a: 2, ex: "الصح هو 6 جنيهات، لأن 10 ناقص 4 يساوي 6.", emoji: "💰" },
+ { q: "أكمل النمط: 🔴🔵🔴🔵🔴 ...؟", opts: ["🔴", "🔵", "🟢", "🟡"], a: 1, ex: "الصح هو الدائرة الزرقاء، لأن النمط يتكرر: أحمر، أزرق، أحمر، أزرق.", emoji: "🔴" },
+ { q: "كم دقيقة في الساعة؟", opts: ["30", "60", "90", "100"], a: 1, ex: "الصح هو 60 دقيقة في الساعة الواحدة.", emoji: "🕐" },
+ { q: "ما ناتج 7 + 8 = ؟", opts: ["13", "14", "15", "16"], a: 2, ex: "الصح هو 15، لأن 7 زائد 8 يساوي 15.", emoji: "➕" },
+],
+2: [
+ { q: "ما ناتج 12 × 5 = ؟", opts: ["50", "55", "60", "65"], a: 2, ex: "الصح هو 60، لأن 12 في 5 يعني 10 في 5 زائد 2 في 5، أي 50 زائد 10 يساوي 60.", emoji: "✖️" },
+ { q: "أكمل النمط: 3، 6، 12، 24، ...؟", opts: ["36", "48", "30", "44"], a: 1, ex: "الصح هو 48، لأن كل عدد هو ضعف اللي قبله: 24 في 2 يساوي 48.", emoji: "🔢" },
+ { q: "إذا كان عمر سارة 8 سنوات، وأخوها أكبر منها بـ 5 سنوات، فكم عمر أخيها؟", opts: ["11", "12", "13", "15"], a: 2, ex: "الصح هو 13 سنة، لأن 8 زائد 5 يساوي 13.", emoji: "👧" },
+ { q: "ما ناتج 100 - 37 = ؟", opts: ["63", "67", "73", "57"], a: 0, ex: "الصح هو 63، لأن 100 ناقص 37 يساوي 63.", emoji: "➖" },
+ { q: "أي عدد يقبل القسمة على 3؟", opts: ["14", "16", "21", "25"], a: 2, ex: "الصح هو 21، لأن مجموع أرقامه 2 زائد 1 يساوي 3، و3 تقبل القسمة على 3. و21 على 3 يساوي 7.", emoji: "🔢" },
+ { q: "مربع طول ضلعه 5 سم، ما محيطه؟", opts: ["15 سم", "20 سم", "25 سم", "10 سم"], a: 1, ex: "الصح هو 20 سم، لأن محيط المربع يساوي طول الضلع في 4، و5 في 4 يساوي 20.", emoji: "⬛" },
+ { q: "أكمل النمط: 1، 1، 2، 3، 5، 8، ...؟", opts: ["11", "12", "13", "10"], a: 2, ex: "الصح هو 13، لأن كل عدد هو مجموع العددين اللي قبله: 5 زائد 8 يساوي 13. ده نمط فيبوناتشي الشهير!", emoji: "🌻" },
+ { q: "في علبة 24 قلمًا، أخذتَ الثلث. كم قلمًا أخذت؟", opts: ["6", "8", "12", "4"], a: 1, ex: "الصح هو 8 أقلام، لأن ثلث 24 يعني 24 على 3 ويساوي 8.", emoji: "✏️" },
+ { q: "ما العدد الذي إذا ضربته في نفسه يعطي 49؟", opts: ["6", "7", "8", "9"], a: 1, ex: "الصح هو 7، لأن 7 في 7 يساوي 49.", emoji: "🔢" },
+ { q: "قطار يتحرك بسرعة 60 كم في الساعة، كم يقطع في ساعتين؟", opts: ["60 كم", "100 كم", "120 كم", "180 كم"], a: 2, ex: "الصح هو 120 كم، لأن المسافة تساوي السرعة في الزمن: 60 في 2 يساوي 120.", emoji: "🚂" },
+],
+3: [
+ { q: "ما ناتج 15 × 12 = ؟", opts: ["160", "170", "180", "190"], a: 2, ex: "الصح هو 180، لأن 15 في 12 يساوي 15 في 10 زائد 15 في 2، أي 150 زائد 30 يساوي 180.", emoji: "✖️" },
+ { q: "أكمل النمط: 2، 3، 5، 7، 11، ...؟", opts: ["12", "13", "14", "15"], a: 1, ex: "الصح هو 13، لأن دي أعداد أولية: الأعداد التي لا تقبل القسمة إلا على نفسها وعلى 1.", emoji: "🔢" },
+ { q: "ثلاثة إخوة أعمارهم 5 و7 و9 سنوات. كم سيكون مجموع أعمارهم بعد 3 سنوات؟", opts: ["24", "27", "30", "21"], a: 2, ex: "الصح هو 30، لأن مجموع أعمارهم الآن 21، وكل واحد يكبر 3 سنوات، يعني المجموع يزيد 9، فيصبح 30.", emoji: "👨‍👩‍👦" },
+ { q: "ما ناتج 144 ÷ 12 = ؟", opts: ["11", "12", "13", "14"], a: 1, ex: "الصح هو 12، لأن 12 في 12 يساوي 144.", emoji: "➗" },
+ { q: "إذا كانت الساعة الآن 9:45، كم دقيقة حتى العاشرة؟", opts: ["10", "15", "20", "45"], a: 1, ex: "الصح هو 15 دقيقة، لأن من 9:45 إلى 10:00 يتبقى ربع ساعة، أي 15 دقيقة.", emoji: "🕙" },
+ { q: "مكعب طول حرفه 3 سم، ما حجمه؟", opts: ["9 سم³", "18 سم³", "27 سم³", "36 سم³"], a: 2, ex: "الصح هو 27 سنتيمتر مكعب، لأن حجم المكعب يساوي طول الحرف في نفسه 3 مرات: 3 في 3 في 3 يساوي 27.", emoji: "🧊" },
+ { q: "ما العدد التالي في النمط: 100، 90، 81، 73، 66، ...؟", opts: ["58", "59", "60", "61"], a: 1, ex: "الصح هو 60، لأن الفروق تقل واحدًا كل مرة: ناقص 10، ثم ناقص 9، ثم ناقص 8، ثم ناقص 7، ثم ناقص 6، فيصبح 60.", emoji: "🔢" },
+ { q: "لديك 5 عملات، واحدة منها أخف من الباقي. باستخدام ميزان ذي كفتين، ما أقل عدد وزنات لمعرفة العملة الخفيفة؟", opts: ["1", "2", "3", "5"], a: 1, ex: "الصح هو وزنتان: ضع عملتين في كل كفة، لو تساوتا فالعملة الباقية هي الخفيفة، ولو اختلفتا فالخفيفة في الكفة الأعلى، ثم قارن العملتين فيها بوزنة واحدة.", emoji: "⚖️" },
+ { q: "ما ناتج 25% من 200؟", opts: ["25", "40", "50", "75"], a: 2, ex: "الصح هو 50، لأن 25% تعني الربع، وربع 200 يساوي 50.", emoji: "💯" },
+ { q: "أحمد أسرع من علي، وعلي أسرع من سعيد. من الأبطأ؟", opts: ["أحمد", "علي", "سعيد", "لا يمكن معرفته"], a: 2, ex: "الصح هو سعيد، لأن الترتيب من الأسرع للأبطأ هو: أحمد، ثم علي، ثم سعيد.", emoji: "🏃" },
+],
+};
+
+let voiceOn = true;
+let currentLevel = 0, currentQ = 0, score = 0, stars = 0, answered = false;
+
+function speak(text) {
+  if (!voiceOn || !("speechSynthesis" in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "ar-EG";
+    u.rate = 0.9; u.pitch = 1.05;
+    const voices = window.speechSynthesis.getVoices();
+    const ar = voices.find(v => v.lang && v.lang.toLowerCase().startsWith("ar"));
+    if (ar) u.voice = ar;
+    window.speechSynthesis.speak(u);
+  } catch (e) { /* الصوت غير متاح على هذا الجهاز */ }
+}
+
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  if (!voiceOn && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  const label = voiceOn ? "🔊 الصوت: شغّال" : "🔇 الصوت: مطفي";
+  document.getElementById("voiceBtnHome").textContent = label;
+  document.getElementById("voiceBtnFloat").textContent = label;
+}
+
+function renderLevels() {
+  const grid = document.getElementById("levelGrid");
+  grid.innerHTML = "";
+  const best = localStorage.getItem("kidsIqBest");
+  document.getElementById("bestScore").textContent = best ? best + " نقطة" : "لسه مالعبتش — ابدأ دلوقتي!";
+  LEVELS.forEach(lv => {
+    const div = document.createElement("div");
+    div.className = "level";
+    div.innerHTML = `<div class="emoji">${lv.icon}</div><h3>${lv.name}</h3><p>${lv.age}</p><p>${lv.desc}</p><p class="lock">10 أسئلة</p>`;
+    div.onclick = () => startLevel(lv.id);
+    grid.appendChild(div);
+  });
+}
+
+function show(id) {
+  ["homeScreen", "gameScreen", "resultScreen"].forEach(s => document.getElementById(s).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function startLevel(id) {
+  currentLevel = id; currentQ = 0; score = 0; stars = 0;
+  show("gameScreen");
+  renderQuestion();
+}
+
+function quitToHome() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  renderLevels(); show("homeScreen");
+}
+
+function renderQuestion() {
+  answered = false;
+  const qs = QUESTIONS[currentLevel];
+  const q = qs[currentQ];
+  document.getElementById("levelLabel").textContent = LEVELS[currentLevel].name;
+  document.getElementById("starsLabel").textContent = "⭐ " + stars;
+  document.getElementById("scoreLabel").textContent = "النقاط: " + score;
+  document.getElementById("qCounter").textContent = "السؤال " + (currentQ + 1) + " من " + qs.length;
+  document.getElementById("progressBar").style.width = (currentQ / qs.length * 100) + "%";
+  document.getElementById("qEmoji").textContent = q.emoji || "🤔";
+  document.getElementById("qText").textContent = q.q;
+  const box = document.getElementById("optionsBox");
+  box.innerHTML = "";
+  q.opts.forEach((opt, i) => {
+    const b = document.createElement("button");
+    b.className = "opt"; b.textContent = opt;
+    b.onclick = () => answer(i, b);
+    box.appendChild(b);
+  });
+  document.getElementById("feedbackBox").innerHTML = "";
+  document.getElementById("nextBtn").classList.add("hidden");
+  speak(q.q);
+}
+
+function speakQuestion() {
+  const q = QUESTIONS[currentLevel][currentQ];
+  speak(q.q + ". الخيارات هي: " + q.opts.join("، "));
+}
+
+function answer(i, btn) {
+  if (answered) return;
+  answered = true;
+  const q = QUESTIONS[currentLevel][currentQ];
+  const btns = document.querySelectorAll(".opt");
+  btns.forEach(b => b.disabled = true);
+  const fb = document.getElementById("feedbackBox");
+  if (i === q.a) {
+    btn.classList.add("correct");
+    score += 10; stars += 1;
+    document.getElementById("starsLabel").textContent = "⭐ " + stars;
+    document.getElementById("scoreLabel").textContent = "النقاط: " + score;
+    const praises = ["برافو عليك! إجابة صحيحة.", "ممتاز! أنت ذكي جدًا.", "أحسنت! إجابة صحيحة مية في المية."];
+    const p = praises[Math.floor(Math.random() * praises.length)];
+    fb.innerHTML = `<div class="praise">🎉 ${p}</div>`;
+    speak(p);
+  } else {
+    btn.classList.add("wrong");
+    btns[q.a].classList.add("correct");
+    fb.innerHTML = `<div class="explain"><h3>💡 الإجابة الصحيحة هي: ${q.opts[q.a]}</h3><p>${q.ex}</p><button class="btn btn-blue" onclick="replayExplain()">🔊 اسمع الشرح تاني</button></div>`;
+    speak("الإجابة الصحيحة هي " + q.opts[q.a] + ". " + q.ex);
+  }
+  document.getElementById("progressBar").style.width = ((currentQ + 1) / QUESTIONS[currentLevel].length * 100) + "%";
+  document.getElementById("nextBtn").textContent = currentQ + 1 === QUESTIONS[currentLevel].length ? "شوف النتيجة 🏆" : "السؤال اللي بعده ➡️";
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+
+function replayExplain() {
+  const q = QUESTIONS[currentLevel][currentQ];
+  speak("الإجابة الصحيحة هي " + q.opts[q.a] + ". " + q.ex);
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= QUESTIONS[currentLevel].length) { showResult(); return; }
+  renderQuestion();
+}
+
+function showResult() {
+  const total = QUESTIONS[currentLevel].length * 10;
+  const pct = score / total;
+  let emoji = "🎉", title = "برافو يا بطل!", msg = "";
+  if (pct >= 0.9) { emoji = "👑"; title = "مذهل! أنت عبقري!"; msg = "نتيجة شبه كاملة! جرّب المستوى اللي بعده وتحدّى نفسك أكتر."; }
+  else if (pct >= 0.7) { emoji = "🌟"; title = "ممتاز جدًا!"; msg = "نتيجة جميلة! راجع الأسئلة اللي غلطت فيها وهتبقى عبقري في المرة الجاية."; }
+  else if (pct >= 0.5) { emoji = "👍"; title = "أحسنت!"; msg = "نتيجة كويسة! العب المستوى ده تاني وهتشوف الفرق."; }
+  else { emoji = "💪"; title = "لا تستسلم!"; msg = "الأذكياء بيغلطوا وبيتعلموا. اسمع الشرح في كل سؤال والعب تاني وهتتحسن بسرعة."; }
+  document.getElementById("resultEmoji").textContent = emoji;
+  document.getElementById("resultTitle").textContent = title;
+  document.getElementById("resultScore").textContent = score + " / " + total;
+  document.getElementById("resultStars").textContent = "⭐".repeat(stars) + "☆".repeat(QUESTIONS[currentLevel].length - stars);
+  document.getElementById("resultMsg").textContent = msg;
+  const best = parseInt(localStorage.getItem("kidsIqBest") || "0", 10);
+  if (score > best) localStorage.setItem("kidsIqBest", String(score));
+  show("resultScreen");
+  speak(title + " جبت " + score + " نقطة من " + total + ". " + msg);
+}
+
+function replayLevel() { startLevel(currentLevel); }
+
+renderLevels();
+</script>
+</body>
+</html>
